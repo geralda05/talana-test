@@ -18,18 +18,18 @@
       </Sidebar>
       <div class="w-100 col-12 col-sm">
         <div class="w-100 bg-dark p-3">
-                <h4 class="text-white">{{currentCategoria}}</h4>
-        <div class="row justify-content-center">
-          <div class="col-12 col-sm-6 col-md-4 col-lg-3" style="max-width:300px;" v-for="producto in showProductos" :key="producto.id">
+                <h4 class="text-white"><span v-if="showProductos.length == 0">No hay productos con la categoria de </span>{{currentCategoria}}</h4>
+        <div class="row justify-content-center" v-if="showProductos.length > 0">
+          <div class="col-12 col-sm-6 col-md-4 col-lg-3 d-flex" style="max-width:300px;" v-for="producto in showProductos" :key="producto.id">
             <div class="card w-100">
-              <img src="https://pbs.twimg.com/profile_images/1088764918516666368/hVkGmebJ_400x400.jpg" class="card-img-top" />
+              <img v-bind:src="producto.photo" class="card-img-top" />
               <div class="card-body">
                 <h5 class="card-title">{{producto.name}}</h5>
-                <p class="card-subtitle mb-2 text-muted">          {{producto.categoria}}</p>
+                <p class="card-subtitle mb-2 text-muted">          {{producto.category.name}}</p>
               </div>
               <div class="card-footer text-muted">
                 <form class="ml-auto w-100 text-right" style="display:inline-block" v-on:submit.prevent="addToCart(producto)">
-                  <span class="d-inline-block m-0 p-0">${{producto.precio}}</span>
+                  <span class="d-inline-block m-0 p-0">${{producto.price}}</span>
                   <span class="d-inline-block ml-3" style="font-size:10px; margin-right:4px">Cantidad</span>
                   <input type="number" class="form-control" v-model="producto.cantidad" required style="display:inline-block !important; width: 55px" />
                   <button class="d-inline-block btn btn-success" type="submit"><i class="fa fa-plus"></i></button>
@@ -65,10 +65,10 @@
               <tbody>
                 <tr v-for="producto in shoppingCart" :key="producto.id">
                   <th scope="row">{{producto.name}}</th>
-                  <td>{{producto.categoria}}</td>
+                  <td>{{producto.category.name}}</td>
                   <td>{{producto.cantidad}}</td>
-                  <td>${{producto.precio}}</td>
-                  <td>${{producto.precio * producto.cantidad}}</td>
+                  <td>${{producto.price}}</td>
+                  <td>${{producto.price * producto.cantidad}}</td>
                 </tr>
               </tbody>
             </table>
@@ -83,7 +83,7 @@
 import Burger from './components/Burguer.vue';
 import Sidebar from './components/Sidebar.vue';
 import Swal from 'sweetalert2'
- 
+ import axios from 'axios'
 
 export default {
  name: 'app',
@@ -93,28 +93,8 @@ export default {
  },
  data(){
    return{
-    productos:[{
-      name:'Producto 1',
-      id:1,
-      categoria:'Categoria 1',
-      precio:22.5
-    },{
-      name:'Producto 2',
-      id:2,
-      categoria:'Categoria 2',
-      precio:44
-    },{
-      name:'Producto 3',
-      id:3,
-      categoria:'Categoria 2',
-      precio:45
-    },{
-      name:'Producto 4',
-      id:4,
-      categoria:'Categoria 3',
-      precio:200
-    }],
-    categorias:['Categoria 1','Categoria 2', 'Categoria 3'],
+    productos:[],
+    categorias:['Categoria 1','Categoria 2', 'Categoria 3', 'Alimentos', 'Collares'],
     showProductos:[],
     shoppingCart:[],
     currentCategoria:''
@@ -139,7 +119,7 @@ export default {
        if(contador == 0){
          this.showProductos = []
        }
-       if(this.productos[contador].categoria == v){
+       if(this.productos[contador].category.name == v){
          this.showProductos.push(this.productos[contador])
        }
        contador++
@@ -147,14 +127,23 @@ export default {
    }
  },
  mounted(){
-   this.showProductos = this.productos
+   const self = this;
+   axios.get('http://sva.talana.com:8000/api/product/', {
+    params: {
+      ID: 12345
+    }
+  })
+  .then(function (response) {
+    self.productos = response.data
+   self.showProductos = response.data
+  })
+
  }
 }
 </script>
 <style>
 html {
    height: 100%;
-   overflow:hidden;
  }
 
 
